@@ -31,6 +31,35 @@ interface BuildingObject {
   status: 'active' | 'warning' | 'critical';
 }
 
+interface Task {
+  id: number;
+  title: string;
+  object: string;
+  time: string;
+  done: boolean;
+  type?: 'inspection' | 'repair' | 'maintenance' | 'emergency';
+  system?: string;
+}
+
+interface Document {
+  id: number;
+  name: string;
+  type: string;
+  object: string;
+  date: string;
+  size?: string;
+}
+
+interface EmergencyCall {
+  id: number;
+  object: string;
+  type: string;
+  date: string;
+  duration: string;
+  resolved: boolean;
+  payment?: number;
+}
+
 const Index = () => {
   const [activeNav, setActiveNav] = useState<NavItem>('dashboard');
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
@@ -62,11 +91,26 @@ const Index = () => {
     { id: 4, name: 'БЦ "Альфа"', address: 'ул. Московская, 88', type: 'Бизнес-центр', systems: ['Электроснабжение', 'Отопление', 'Вентиляция'], lastInspection: '2025-10-22', status: 'active' },
   ];
 
-  const todayTasks = [
-    { id: 1, title: 'Осмотр электрощитовой', object: 'ТЦ "Галерея"', time: '09:00', done: true },
-    { id: 2, title: 'Замена насоса ГВС', object: 'БЦ "Сириус"', time: '11:00', done: true },
-    { id: 3, title: 'Проверка системы вентиляции', object: 'Склад №3', time: '15:00', done: false },
-    { id: 4, title: 'Подготовка отчета для Горгаза', object: 'БЦ "Альфа"', time: '17:00', done: false },
+  const todayTasks: Task[] = [
+    { id: 1, title: 'Осмотр электрощитовой', object: 'ТЦ "Галерея"', time: '09:00', done: true, type: 'inspection', system: 'Электроснабжение' },
+    { id: 2, title: 'Замена насоса ГВС', object: 'БЦ "Сириус"', time: '11:00', done: true, type: 'repair', system: 'Отопление' },
+    { id: 3, title: 'Проверка системы вентиляции', object: 'Склад №3', time: '15:00', done: false, type: 'inspection', system: 'Вентиляция' },
+    { id: 4, title: 'Подготовка отчета для Горгаза', object: 'БЦ "Альфа"', time: '17:00', done: false, type: 'maintenance' },
+    { id: 5, title: 'Контроль состояния котельной', object: 'БЦ "Сириус"', time: '18:00', done: false, type: 'inspection', system: 'Отопление' },
+  ];
+
+  const documents: Document[] = [
+    { id: 1, name: 'Акт осмотра электрощитовой', type: 'Отчет', object: 'ТЦ "Галерея"', date: '2025-10-20', size: '2.3 МБ' },
+    { id: 2, name: 'Договор с Горгазом', type: 'Договор', object: 'БЦ "Сириус"', date: '2025-01-15', size: '1.8 МБ' },
+    { id: 3, name: 'Технический паспорт котла', type: 'Паспорт', object: 'БЦ "Сириус"', date: '2024-06-10', size: '5.1 МБ' },
+    { id: 4, name: 'Акт замены насоса ХВС', type: 'Акт', object: 'Склад №3', date: '2025-09-12', size: '1.2 МБ' },
+    { id: 5, name: 'График планово-профилактических работ', type: 'График', object: 'Все объекты', date: '2025-10-01', size: '890 КБ' },
+  ];
+
+  const emergencyCalls: EmergencyCall[] = [
+    { id: 1, object: 'ТЦ "Галерея"', type: 'Затопление подвала', date: '2025-10-18 23:45', duration: '3.5 ч', resolved: true, payment: 5250 },
+    { id: 2, object: 'БЦ "Альфа"', type: 'Авария системы отопления', date: '2025-10-15 02:15', duration: '4 ч', resolved: true, payment: 6000 },
+    { id: 3, object: 'Склад №3', type: 'Отключение электричества', date: '2025-10-10 19:30', duration: '2 ч', resolved: true, payment: 3000 },
   ];
 
   const equipment = [
@@ -319,6 +363,198 @@ const Index = () => {
     </div>
   );
 
+  const renderTasks = () => (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">Задачи</h2>
+          <p className="text-sm text-muted-foreground mt-1">Плановые и текущие работы</p>
+        </div>
+        <Button size="sm">
+          <Icon name="Plus" size={16} className="mr-2" />
+          <span className="hidden sm:inline">Создать задачу</span>
+          <span className="sm:hidden">Создать</span>
+        </Button>
+      </div>
+
+      <div className="grid gap-3">
+        {todayTasks.map((task) => (
+          <Card key={task.id}>
+            <CardContent className="p-4">
+              <div className="flex items-start gap-3">
+                <div className={`mt-1 w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 cursor-pointer ${
+                  task.done ? 'bg-primary border-primary' : 'border-muted-foreground'
+                }`}>
+                  {task.done && <Icon name="Check" size={14} className="text-primary-foreground" />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1">
+                      <p className={`font-medium ${task.done ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                        {task.title}
+                      </p>
+                      <div className="flex items-center gap-3 mt-2 flex-wrap">
+                        <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <Icon name="MapPin" size={12} className="flex-shrink-0" />
+                          {task.object}
+                        </span>
+                        <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <Icon name="Clock" size={12} className="flex-shrink-0" />
+                          {task.time}
+                        </span>
+                        {task.system && (
+                          <Badge variant="outline" className="text-xs">{task.system}</Badge>
+                        )}
+                      </div>
+                    </div>
+                    {task.type && (
+                      <Badge variant={task.type === 'emergency' ? 'destructive' : task.type === 'repair' ? 'secondary' : 'default'} className="flex-shrink-0">
+                        {task.type === 'inspection' ? 'Осмотр' : task.type === 'repair' ? 'Ремонт' : task.type === 'emergency' ? 'Аварийная' : 'Обслуживание'}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderDocuments = () => (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">Документы</h2>
+          <p className="text-sm text-muted-foreground mt-1">Техническая документация</p>
+        </div>
+        <Button size="sm">
+          <Icon name="Upload" size={16} className="mr-2" />
+          <span className="hidden sm:inline">Загрузить документ</span>
+          <span className="sm:hidden">Загрузить</span>
+        </Button>
+      </div>
+
+      <div className="grid gap-3">
+        {documents.map((doc) => (
+          <Card key={doc.id} className="hover:shadow-md transition-shadow cursor-pointer">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                  <Icon name="FileText" size={20} className="text-blue-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-foreground truncate">{doc.name}</p>
+                  <div className="flex items-center gap-3 mt-1 flex-wrap">
+                    <span className="text-xs text-muted-foreground">{doc.object}</span>
+                    <span className="text-muted-foreground">•</span>
+                    <span className="text-xs text-muted-foreground">{doc.date}</span>
+                    {doc.size && (
+                      <>
+                        <span className="text-muted-foreground">•</span>
+                        <span className="text-xs text-muted-foreground">{doc.size}</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+                <Badge variant="outline" className="flex-shrink-0">{doc.type}</Badge>
+                <Button variant="ghost" size="icon" className="flex-shrink-0">
+                  <Icon name="Download" size={16} />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderReports = () => (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">Отчеты</h2>
+          <p className="text-sm text-muted-foreground mt-1">Аварийные выезды и доплаты</p>
+        </div>
+        <Button size="sm">
+          <Icon name="FileBarChart" size={16} className="mr-2" />
+          Создать отчет
+        </Button>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Аварийные выезды за текущий месяц</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {emergencyCalls.map((call) => (
+              <div key={call.id} className="flex items-start gap-4 p-4 rounded-lg border border-border">
+                <div className={`w-1 h-16 rounded-full ${call.resolved ? 'bg-green-500' : 'bg-amber-500'}`} />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1">
+                      <p className="font-medium text-foreground">{call.type}</p>
+                      <p className="text-sm text-muted-foreground mt-1">{call.object}</p>
+                      <div className="flex items-center gap-3 mt-2 flex-wrap text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Icon name="Calendar" size={12} />
+                          {call.date}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Icon name="Clock" size={12} />
+                          {call.duration}
+                        </span>
+                      </div>
+                    </div>
+                    {call.payment && (
+                      <div className="text-right flex-shrink-0">
+                        <p className="text-lg font-bold text-green-600">+{call.payment} ₽</p>
+                        <p className="text-xs text-muted-foreground">Доплата</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-6 pt-6 border-t border-border">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium text-muted-foreground">Итого за месяц:</p>
+              <p className="text-2xl font-bold text-green-600">
+                +{emergencyCalls.reduce((sum, call) => sum + (call.payment || 0), 0)} ₽
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid sm:grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="p-6">
+            <p className="text-sm text-muted-foreground">Всего выездов</p>
+            <p className="text-3xl font-bold text-foreground mt-2">{emergencyCalls.length}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <p className="text-sm text-muted-foreground">Средняя длительность</p>
+            <p className="text-3xl font-bold text-foreground mt-2">3.2 ч</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <p className="text-sm text-muted-foreground">Решено</p>
+            <p className="text-3xl font-bold text-green-600 mt-2">
+              {emergencyCalls.filter(c => c.resolved).length}/{emergencyCalls.length}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+
   const renderObjects = () => (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -389,6 +625,12 @@ const Index = () => {
         return renderIncidents();
       case 'objects':
         return renderObjects();
+      case 'tasks':
+        return renderTasks();
+      case 'documents':
+        return renderDocuments();
+      case 'reports':
+        return renderReports();
       default:
         return renderDashboard();
     }
